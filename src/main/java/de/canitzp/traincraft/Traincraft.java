@@ -41,6 +41,7 @@ public class Traincraft {
         logger.info("Starting PreInitialization of Traincraft");
         traincraftTab = new CreativeTabs(NAME) {@Override public Item getTabIconItem() {return Items.item_frame;}};
         BlockRegistry.preInit();
+        ItemRegistry.preInit();
         TileEntityRegistry.preInit();
         GameRegistry.registerWorldGenerator(new WorldGen(), 10);
     }

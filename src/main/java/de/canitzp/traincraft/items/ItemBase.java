@@ -12,6 +12,7 @@ public class ItemBase extends Item {
     public ItemBase(String name){
         this.setUnlocalizedName(Traincraft.MODID + "." + name);
         this.setCreativeTab(Traincraft.traincraftTab);
+        this.setMaxStackSize(64);
         GameRegistry.registerItem(this, name);
     }
 

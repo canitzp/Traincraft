@@ -1,6 +1,8 @@
 package de.canitzp.traincraft.blocks.distillery;
 
+import de.canitzp.traincraft.items.IItemFuel;
 import de.canitzp.traincraft.tile.TileEntityInventoryBase;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fluids.*;
 
