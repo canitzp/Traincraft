@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "traincraft:distillery" },
+        "facing=south": { "model": "traincraft:distillery", "y": 180 },
+        "facing=west": { "model": "traincraft:distillery", "y": 270 },
+        "facing=east": { "model": "traincraft:distillery", "y": 90 }
+    }
+}
