@@ -34,7 +34,7 @@ public class GuiHandler implements IGuiHandler {
         TileEntity entity = world.getTileEntity(new BlockPos(x, y, z));
         switch (ID){
             case ID_DISTILLERY:{
-                return new GuiDistillery(new ContainerDistillery((TileEntityDistillery) entity, player), entity);
+                return new GuiDistillery(new ContainerDistillery((TileEntityDistillery) entity, player), (TileEntityDistillery) entity);
             }
             default:{
                 return null;

@@ -17,6 +17,7 @@ public class ContainerDistillery extends Container {
     private int cookTime;
     private int burnTime;
     private int itemBurnTime;
+    public int tankAmount;
 
     public ContainerDistillery(TileEntityDistillery distillery, EntityPlayer player){
         this.distillery = distillery;
@@ -42,6 +43,9 @@ public class ContainerDistillery extends Container {
         listener.sendProgressBarUpdate(this, 0, this.distillery.distilCookTime);
         listener.sendProgressBarUpdate(this, 1, this.distillery.distilBurnTime);
         listener.sendProgressBarUpdate(this, 2, this.distillery.currentItemBurnTime);
+        if(!this.distillery.tank.isEmpty()){
+            listener.sendProgressBarUpdate(this, 3, this.distillery.tank.getFluid().amount);
+        }
     }
 
     @Override
@@ -57,10 +61,18 @@ public class ContainerDistillery extends Container {
             if (this.itemBurnTime != this.distillery.currentItemBurnTime) {
                 crafter.sendProgressBarUpdate(this, 2, this.distillery.currentItemBurnTime);
             }
+            if(!this.distillery.tank.isEmpty()){
+                if(this.tankAmount != this.distillery.tank.getFluid().amount){
+                    crafter.sendProgressBarUpdate(this, 3, this.distillery.tank.getFluid().amount);
+                }
+            }
         }
         this.cookTime = this.distillery.distilCookTime;
         this.burnTime = this.distillery.distilBurnTime;
         this.itemBurnTime = this.distillery.currentItemBurnTime;
+        if(!this.distillery.tank.isEmpty()) {
+            this.tankAmount = this.distillery.tank.getFluid().amount;
+        }
     }
 
     @Override
@@ -74,6 +86,10 @@ public class ContainerDistillery extends Container {
         }
         if(id == 2) {
             this.distillery.currentItemBurnTime = data;
+        }
+        if(id == 3){
+            if(this.distillery.tank.getFluid() != null)
+                this.distillery.tank.getFluid().amount = data;
         }
     }
 

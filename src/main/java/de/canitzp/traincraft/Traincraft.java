@@ -1,5 +1,6 @@
 package de.canitzp.traincraft;
 
+import de.canitzp.traincraft.blocks.distillery.DistilleryRecipeManager;
 import de.canitzp.traincraft.gen.WorldGen;
 import de.canitzp.traincraft.proxy.CommonProxy;
 import net.minecraft.client.Minecraft;
@@ -11,6 +12,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -50,8 +52,13 @@ public class Traincraft {
     public void init(FMLInitializationEvent event){
         logger.info("Starting Initialization of Traincraft");
         NetworkRegistry.INSTANCE.registerGuiHandler(traincraft, new GuiHandler());
-        Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Item.getItemFromBlock(BlockRegistry.oilSand), 0, new ModelResourceLocation(Traincraft.MODID + ":oilSand", "inventory"));
+        proxy.registerRenderers();
+    }
 
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event){
+        logger.info("Starting PostInitialization of Traincraft");
+        DistilleryRecipeManager.postInit();
     }
 
 }

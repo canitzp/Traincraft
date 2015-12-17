@@ -7,6 +7,6 @@ public interface IItemFuel {
 
     boolean isItemFuel();
 
-    int getFuelLevel();
+    int getBurnTime();
 
 }

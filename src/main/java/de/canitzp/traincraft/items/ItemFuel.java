@@ -15,7 +15,7 @@ public class ItemFuel extends ItemBase implements IItemFuel {
     }
 
     @Override
-    public int getFuelLevel() {
-        return 1;
+    public int getBurnTime() {
+        return 500;
     }
 }

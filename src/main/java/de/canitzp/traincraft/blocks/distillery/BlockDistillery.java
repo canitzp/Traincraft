@@ -30,6 +30,6 @@ public class BlockDistillery extends BlockRotatable {
             player.openGui(Traincraft.traincraft, GuiHandler.ID_DISTILLERY, world, pos.getX(), pos.getY(), pos.getZ());
             return true;
         }
-        return false;
+        return true;
     }
 }

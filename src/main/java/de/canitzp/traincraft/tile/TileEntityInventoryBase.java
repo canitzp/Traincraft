@@ -1,5 +1,6 @@
 package de.canitzp.traincraft.tile;
 
+import de.canitzp.traincraft.VanillaPacketSyncer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -83,7 +84,6 @@ public class TileEntityInventoryBase extends TileEntity implements IInventory{
 
     @Override
     public void closeInventory(EntityPlayer player) {
-
     }
 
     @Override
