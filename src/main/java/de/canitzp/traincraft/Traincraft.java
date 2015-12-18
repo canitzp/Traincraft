@@ -5,6 +5,11 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
+import de.canitzp.traincraft.blocks.distillery.DistilleryRecipeManager;
+import de.canitzp.traincraft.gen.WorldGen;
+import de.canitzp.traincraft.proxy.CommonProxy;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -25,8 +30,8 @@ public class Traincraft {
     public static final String SERVERPROXY = "de.canitzp.traincraft.proxy.CommonProxy";
     @Mod.Instance(Traincraft.MODID)
     public static Traincraft traincraft;
-    //@SidedProxy(clientSide = Traincraft.CLIENTPROXY, serverSide = Traincraft.SERVERPROXY)
-    //public static CommonProxy proxy;
+    @SidedProxy(clientSide = Traincraft.CLIENTPROXY, serverSide = Traincraft.SERVERPROXY)
+    public static CommonProxy proxy;
     public static Logger logger = LogManager.getLogger(Traincraft.NAME);
     public static CreativeTabs traincraftTab;
 
@@ -34,22 +39,22 @@ public class Traincraft {
     public void preInit(FMLPreInitializationEvent event){
         logger.info("Starting PreInitialization of Traincraft");
         traincraftTab = new CreativeTabs(NAME) {@Override public Item getTabIconItem() {return Items.item_frame;}};
-        //BlockRegistry.preInit();
-        //ItemRegistry.preInit();
-        //TileEntityRegistry.preInit();
-        //GameRegistry.registerWorldGenerator(new WorldGen(), 10);
+        BlockRegistry.preInit();
+        ItemRegistry.preInit();
+        TileEntityRegistry.preInit();
+        GameRegistry.registerWorldGenerator(new WorldGen(), 10);
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event){
         logger.info("Starting Initialization of Traincraft");
-        //NetworkRegistry.INSTANCE.registerGuiHandler(traincraft, new GuiHandler());
+        NetworkRegistry.INSTANCE.registerGuiHandler(traincraft, new GuiHandler());
         //proxy.registerRenderers();
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event){
         logger.info("Starting PostInitialization of Traincraft");
-        //DistilleryRecipeManager.postInit();
+        DistilleryRecipeManager.postInit();
     }
 }
