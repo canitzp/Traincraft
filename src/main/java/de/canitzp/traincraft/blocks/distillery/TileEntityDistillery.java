@@ -1,78 +1,61 @@
 package de.canitzp.traincraft.blocks.distillery;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import de.canitzp.traincraft.ItemRegistry;
 import de.canitzp.traincraft.VanillaPacketSyncer;
-import de.canitzp.traincraft.tile.TileEntityInventoryBase;
+import de.canitzp.traincraft.tile.TileEntitySidesInventoryBase;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.INetHandler;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
-import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraftforge.fluids.*;
 
-import java.io.IOException;
 import java.util.Random;
 
 /**
  * @author canitzp
  */
-public class TileEntityDistillery extends TileEntityInventoryBase{
+public class TileEntityDistillery extends TileEntitySidesInventoryBase{
 
-    public int distilCookTime, distilBurnTime, currentItemBurnTime, cookDuration = 400, amount;
+    public int distilCookTime, distilBurnTime, currentItemBurnTime, cookDuration, usedBurnTime, maxBurnTime, amount, capacity = 30000;
     public StandardTank tank;
     private ItemStack currentItemStack;
+    public final int INPUT = 0, BURNMATERIAL = 1, CANISTERINPUT = 2, CANISTEROUTPUT = 3, OUTPUT = 4;
+    public int fluidID;
 
     public TileEntityDistillery(){
-        super(6, "");
-        this.tank = new StandardTank(30000);
+        super(6, "Distillery");
+        this.tank = new StandardTank(this.capacity);
     }
 
     @SideOnly(Side.CLIENT)
     public int getCookProgressScaled(int i) {
-        return this.distilCookTime * i / this.cookDuration;
+        if(this.currentItemBurnTime == 0) return 0;
+        return this.distilBurnTime * i / this.currentItemBurnTime;
     }
 
     @SideOnly(Side.CLIENT)
     public int getBurnTimeRemainingScaled(int i) {
-        if(this.currentItemBurnTime == 0) {
-            this.currentItemBurnTime = this.cookDuration;
+        if(this.maxBurnTime == 0) {
+            return 0;
         }
-        return (this.distilCookTime * i / this.cookDuration);
+        return (this.usedBurnTime * i / this.maxBurnTime);
     }
 
     public boolean isBurning() {
         return this.distilBurnTime > 0;
     }
 
-    public int getTankAmount(){
-        return this.tank.getFluidAmount();
-    }
 
-    @Override
-    public Packet getDescriptionPacket() {
-        return new S35PacketUpdateTileEntity(this.xCoord, this.yCoord, this.zCoord, 3, this.writable());
-    }
-
-    @Override
-    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt){
-        this.readSync(pkt.func_148857_g());
-    }
-
-    private void readSync(NBTTagCompound nbtTagCompound) {
-        this.tank.readFromNBT(nbtTagCompound);
-    }
 
     @Override
     public void updateEntity() {
         if(!this.worldObj.isRemote){
             if(this.isBurning()) {
-
                 --this.distilBurnTime;
                 ++this.distilCookTime;
                 if(this.distilCookTime == this.cookDuration) {
@@ -80,32 +63,56 @@ public class TileEntityDistillery extends TileEntityInventoryBase{
                     this.smeltItem();
                 }
             } else {
+                int meta = worldObj.getBlockMetadata(xCoord, yCoord, zCoord);
+                if(meta >= 5) worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, meta - 4, 2);
                 this.distilCookTime = 0;
             }
 
+
             if(this.distilBurnTime == 0 && this.canSmelt()) {
-                this.currentItemBurnTime = this.distilBurnTime = this.getItemBurnTime(this.getStackInSlot(0));
-                this.currentItemStack = this.getStackInSlot(0);
-                if(this.getStackInSlot(0).stackSize > 1) {
-                    --this.getStackInSlot(0).stackSize;
-                } else this.setInventorySlotContents(0, null);
+                VanillaPacketSyncer.sendTileToNearbyPlayers(this);
+                if(this.usedBurnTime < this.getItemBurnTime(this.getStackInSlot(INPUT))){
+                    this.usedBurnTime += TileEntityFurnace.getItemBurnTime(this.getStackInSlot(BURNMATERIAL));
+                    this.maxBurnTime = this.usedBurnTime;
+                    this.reduceStackSize(BURNMATERIAL);
+                }
+                this.cookDuration = this.currentItemBurnTime = this.distilBurnTime = this.getItemBurnTime(this.getStackInSlot(INPUT));
+                this.currentItemStack = this.getStackInSlot(INPUT);
+                this.reduceStackSize(INPUT);
+                VanillaPacketSyncer.sendTileToNearbyPlayers(this);
+                worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, worldObj.getBlockMetadata(xCoord, yCoord, zCoord) + 4, 2);
             }
 
-            if(this.getStackInSlot(2) != null){
-                if(this.getStackInSlot(2).getItem() == ItemRegistry.fuelCanisterEmpty){
+            if(this.getStackInSlot(CANISTERINPUT) != null){
+                if(this.getStackInSlot(CANISTERINPUT).getItem() == ItemRegistry.fuelCanisterEmpty){
                     if(this.tank.getFluidAmount() >= 1000){
                         ItemStack output = DistilleryRecipeManager.getFillingOutput(this.tank.getFluid());
                         if(output != null){
-                            this.setStackInSlot(3, output.copy());
-                            if(this.getStackInSlot(2).stackSize > 1) {
-                                --this.getStackInSlot(2).stackSize;
-                            } else this.setInventorySlotContents(2, null);
-                            this.tank.drain(1000, true);
+                            this.setStackInSlot(CANISTEROUTPUT, output.copy());
+                            if(this.getStackInSlot(CANISTERINPUT).stackSize > 1) {
+                                --this.getStackInSlot(CANISTERINPUT).stackSize;
+                            } else this.setInventorySlotContents(CANISTERINPUT, null);
+                            this.drain(1000);
                         }
                     }
                 }
+                VanillaPacketSyncer.sendTileToNearbyPlayers(this);
             }
         }
+    }
+
+    private void drain(int amount){
+        this.tank.drain(amount, true);
+        this.amount = this.tank.getFluidAmount();
+        VanillaPacketSyncer.sendTileToNearbyPlayers(this);
+        this.markDirty();
+    }
+    private void fill(FluidStack fluidStack){
+        this.tank.fill(fluidStack, true);
+        this.amount = this.tank.getFluidAmount();
+        this.fluidID = this.tank.getFluid().getFluidID();
+        VanillaPacketSyncer.sendTileToNearbyPlayers(this);
+        this.markDirty();
     }
 
     private void smeltItem() {
@@ -115,7 +122,8 @@ public class TileEntityDistillery extends TileEntityInventoryBase{
         FluidStack resultLiquid = DistilleryRecipeManager.getFluid(input);
         if (resultLiquid != null) {
             if (resultLiquid.amount <= this.tank.getCapacity()) {
-                this.tank.fill(resultLiquid.copy(), true);
+                this.fill(resultLiquid.copy());
+                VanillaPacketSyncer.sendTileToNearbyPlayers(this);
             }
         }
         if(output != null){
@@ -125,32 +133,36 @@ public class TileEntityDistillery extends TileEntityInventoryBase{
             }
         }
 
+        this.usedBurnTime -= this.currentItemBurnTime;
         this.distilCookTime = 0;
         this.distilBurnTime = 0;
-        this.cookDuration = 400;
+        this.cookDuration = 0;
         this.currentItemBurnTime = 0;
+        if(this.usedBurnTime <= 0){
+            this.maxBurnTime = 0;
+        }
         VanillaPacketSyncer.sendTileToNearbyPlayers(this);
+        worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, worldObj.getBlockMetadata(xCoord, yCoord, zCoord)-4, 2);
+        this.markDirty();
     }
 
     private int getItemBurnTime(ItemStack stack) {
         if(stack != null){
+            VanillaPacketSyncer.sendTileToNearbyPlayers(this);
             return DistilleryRecipeManager.getBurnTime(stack);
         }
         return 0;
     }
 
     private boolean canSmelt() {
-        if(this.getStackInSlot(0) != null){
-            if(DistilleryRecipeManager.getBurnTime(this.getStackInSlot(0)) != 0) {
-                FluidStack fluidStack = DistilleryRecipeManager.getFluid(this.getStackInSlot(0));
+        if(this.getStackInSlot(INPUT) != null && (this.getStackInSlot(BURNMATERIAL) != null || this.usedBurnTime >= this.getItemBurnTime(this.getStackInSlot(INPUT)))){
+            if(DistilleryRecipeManager.getBurnTime(this.getStackInSlot(INPUT)) != 0 && (TileEntityFurnace.getItemBurnTime(this.getStackInSlot(BURNMATERIAL)) > 0 || this.usedBurnTime >= this.getItemBurnTime(this.getStackInSlot(INPUT)))) {
+                FluidStack fluidStack = DistilleryRecipeManager.getFluid(this.getStackInSlot(INPUT));
+                VanillaPacketSyncer.sendTileToNearbyPlayers(this);
                 return fluidStack == null || this.tank.fill(fluidStack, false) >= fluidStack.amount;
             }
         }
         return false;
-    }
-
-    private boolean isItemFuel(ItemStack stack) {
-        return GameRegistry.getFuelValue(stack) != 0;
     }
 
     private void setStackInSlot(int slotId, ItemStack stack){
@@ -161,6 +173,18 @@ public class TileEntityDistillery extends TileEntityInventoryBase{
         } else {
             this.setInventorySlotContents(slotId, stack);
         }
+        VanillaPacketSyncer.sendTileToNearbyPlayers(this);
+    }
+
+    private void reduceStackSize(int slotId){
+        if(this.getStackInSlot(slotId) != null){
+            if(this.getStackInSlot(slotId).stackSize > 1){
+                this.getStackInSlot(slotId).stackSize--;
+            } else {
+                this.setInventorySlotContents(slotId, null);
+            }
+        }
+        VanillaPacketSyncer.sendTileToNearbyPlayers(this);
     }
 
     public class StandardTank extends FluidTank {
@@ -183,33 +207,57 @@ public class TileEntityDistillery extends TileEntityInventoryBase{
         }
     }
 
-    public NBTTagCompound writable(){
-        NBTTagCompound nbt = new NBTTagCompound();
-        this.tank.writeToNBT(nbt);
-        return nbt;
+
+
+    @Override
+    public void writeNBT(NBTTagCompound nbt){
+        nbt.setInteger("maxBurnTime", this.maxBurnTime);
+        nbt.setInteger("usedBurnTime", this.usedBurnTime);
+        nbt.setInteger("CookTime", this.distilCookTime);
+        nbt.setInteger("BurnTime", this.distilBurnTime);
+        nbt.setInteger("ItemBurnTime", this.currentItemBurnTime);
+        nbt.setInteger("CookDuration", this.cookDuration);
+        nbt.setInteger("amount", this.amount);
+        nbt.setInteger("capacity", this.capacity);
+        nbt.setInteger("fluidId", this.fluidID);
+        if(this.currentItemStack != null){
+            NBTTagCompound nbt2 = new NBTTagCompound();
+            this.currentItemStack.writeToNBT(nbt2);
+            nbt.setTag("ItemStack", nbt2);
+        }
+
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound compound){
-        super.writeToNBT(compound);
-        this.tank.writeToNBT(compound);
-        compound.setInteger("CookTime", this.distilCookTime);
-        compound.setInteger("BurnTime", this.distilBurnTime);
-        compound.setInteger("ItemBurnTime", this.currentItemBurnTime);
-        compound.setInteger("CookDuration", this.cookDuration);
-        if(this.currentItemStack != null)
-            this.currentItemStack.writeToNBT(compound);
+    public void readNBT(NBTTagCompound nbt){
+        this.maxBurnTime = nbt.getInteger("maxBurnTime");
+        this.usedBurnTime = nbt.getInteger("usedBurnTime");
+        this.distilCookTime = nbt.getInteger("CookTime");
+        this.distilBurnTime = nbt.getInteger("BurnTime");
+        this.currentItemBurnTime = nbt.getInteger("ItemBurnTime");
+        this.cookDuration = nbt.getInteger("CookDuration");
+        this.amount = nbt.getInteger("amount");
+        this.capacity = nbt.getInteger("capacity");
+        this.fluidID = nbt.getInteger("fluidId");
+        NBTTagCompound nbt2 = nbt.getCompoundTag("ItemStack");
+        if(nbt2 != null) this.currentItemStack = ItemStack.loadItemStackFromNBT(nbt2);
+        Fluid fluid = FluidRegistry.getFluid(this.fluidID);
+        if(fluid != null) this.tank.setFluid(new FluidStack(fluid, this.amount));
+    }
+
+
+
+    @Override
+    public boolean canInsertItem(int slotId, ItemStack stack, int side) {
+        /*if(side == ){
+
+        }
+        */
+        return false;
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound compound){
-        super.readFromNBT(compound);
-        this.tank.readFromNBT(compound);
-        this.distilCookTime = compound.getInteger("CookTime");
-        this.distilBurnTime = compound.getInteger("BurnTime");
-        this.currentItemBurnTime = compound.getInteger("ItemBurnTime");
-        this.cookDuration = compound.getInteger("CookDuration");
-        if(this.currentItemStack != null)
-            this.currentItemStack.readFromNBT(compound);
+    public boolean canExtractItem(int slotId, ItemStack stack, int side) {
+        return false;
     }
 }

@@ -23,7 +23,7 @@ public class DistilleryRecipeManager {
     private static Map<String, ItemStack> outputListFilling = Maps.newHashMap();
 
     public static void postInit(){
-        addSmeltingRecipe(new ItemStack(BlockRegistry.oilSand), null, 1600, new FluidStack(FluidRegistry.WATER, 1000), 0, 50);
+        addSmeltingRecipe(new ItemStack(BlockRegistry.oilSand), new ItemStack(ItemRegistry.plastic), 200, new FluidStack(FluidRegistry.WATER, 1000), 0, 50);
         addFillingRecipe(new ItemStack(ItemRegistry.fuelCanister, 1), new FluidStack(FluidRegistry.WATER, 1000));
     }
 
@@ -40,7 +40,7 @@ public class DistilleryRecipeManager {
     }
 
     public static void addSmeltingRecipe(ItemStack input, ItemStack output, float exp, int plasticChance){
-        addSmeltingRecipe(input, output, 1600, null, exp, plasticChance);
+        addSmeltingRecipe(input, output, 200, null, exp, plasticChance);
     }
 
     public static void addFillingRecipe(ItemStack output, FluidStack fluid){

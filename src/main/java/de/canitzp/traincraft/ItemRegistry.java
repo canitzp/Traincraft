@@ -1,5 +1,6 @@
 package de.canitzp.traincraft;
 
+import de.canitzp.traincraft.items.ItemBase;
 import net.minecraft.item.Item;
 
 /**
@@ -11,9 +12,9 @@ public class ItemRegistry {
 
     public static void preInit(){
         //Tracks.preInitItems();
-        //fuelCanister = new ItemFuel("fuelCanister");
-        //fuelCanisterEmpty = new ItemFuel("fuelCanisterEmpty"){@Override public boolean isItemFuel() {return false;}};
-        //plastic = new ItemBase("plastic");
+        fuelCanister = new ItemBase("fuelCanister");
+        fuelCanisterEmpty = new ItemBase("fuelCanisterEmpty");
+        plastic = new ItemBase("plastic");
     }
 
 }

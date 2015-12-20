@@ -2,11 +2,14 @@ package de.canitzp.traincraft.blocks.distillery;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import de.canitzp.traincraft.tile.slots.SlotFuel;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.SlotFurnace;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
 
 /**
  * @author canitzp
@@ -14,10 +17,8 @@ import net.minecraft.item.ItemStack;
 public class ContainerDistillery extends Container {
 
     private TileEntityDistillery distillery;
-    private int cookTime;
-    private int burnTime;
-    private int itemBurnTime;
-    public int tankAmount;
+    private int cookTime, burnTime, itemBurnTime, amount, maxBurnTime, usedBurnTime, capacity;
+    private int fluidId;
 
     public ContainerDistillery(TileEntityDistillery distillery, EntityPlayer player){
         this.distillery = distillery;
@@ -30,7 +31,7 @@ public class ContainerDistillery extends Container {
             this.addSlotToContainer(new Slot(player.inventory, j, 8 + j * 18, 142));
         }
         addSlotToContainer(new Slot(distillery, 0, 56, 17));
-        addSlotToContainer(new Slot(distillery, 1, 56, 53));
+        addSlotToContainer(new SlotFuel(distillery, 1, 56, 53));
         addSlotToContainer(new Slot(distillery, 2, 123, 8));
         addSlotToContainer(new SlotDistillery(distillery, 3, 123, 33));
         addSlotToContainer(new SlotDistillery(distillery, 4, 116, 60));
@@ -43,9 +44,11 @@ public class ContainerDistillery extends Container {
         listener.sendProgressBarUpdate(this, 0, this.distillery.distilCookTime);
         listener.sendProgressBarUpdate(this, 1, this.distillery.distilBurnTime);
         listener.sendProgressBarUpdate(this, 2, this.distillery.currentItemBurnTime);
-        if(!this.distillery.tank.isEmpty()){
-            listener.sendProgressBarUpdate(this, 3, this.distillery.tank.getFluid().amount);
-        }
+        listener.sendProgressBarUpdate(this, 3, this.distillery.amount);
+        listener.sendProgressBarUpdate(this, 4, this.distillery.maxBurnTime);
+        listener.sendProgressBarUpdate(this, 5, this.distillery.usedBurnTime);
+        listener.sendProgressBarUpdate(this, 6, this.distillery.capacity);
+        listener.sendProgressBarUpdate(this, 7, this.distillery.fluidID);
     }
 
     @Override
@@ -62,18 +65,30 @@ public class ContainerDistillery extends Container {
             if (this.itemBurnTime != this.distillery.currentItemBurnTime) {
                 icrafting.sendProgressBarUpdate(this, 2, this.distillery.currentItemBurnTime);
             }
-            if (!this.distillery.tank.isEmpty()) {
-                if (this.tankAmount != this.distillery.tank.getFluid().amount) {
-                    icrafting.sendProgressBarUpdate(this, 3, this.distillery.tank.getFluid().amount);
-                }
+            if (this.amount != this.distillery.amount) {
+                icrafting.sendProgressBarUpdate(this, 3, this.distillery.amount);
+            }
+            if (this.maxBurnTime != this.distillery.maxBurnTime){
+                icrafting.sendProgressBarUpdate(this, 4, this.distillery.maxBurnTime);
+            }
+            if (this.usedBurnTime != this.distillery.usedBurnTime){
+                icrafting.sendProgressBarUpdate(this, 5, this.distillery.usedBurnTime);
+            }
+            if (this.capacity != this.distillery.capacity){
+                icrafting.sendProgressBarUpdate(this, 6, this.distillery.capacity);
+            }
+            if (this.fluidId != this.distillery.fluidID){
+                icrafting.sendProgressBarUpdate(this, 7, this.distillery.fluidID);
             }
         }
         this.cookTime = this.distillery.distilCookTime;
         this.burnTime = this.distillery.distilBurnTime;
         this.itemBurnTime = this.distillery.currentItemBurnTime;
-        if(!this.distillery.tank.isEmpty()) {
-            this.tankAmount = this.distillery.tank.getFluid().amount;
-        }
+        this.amount = this.distillery.amount;
+        this.maxBurnTime = this.distillery.maxBurnTime;
+        this.usedBurnTime = this.distillery.usedBurnTime;
+        this.capacity = this.distillery.capacity;
+        this.fluidId = this.distillery.fluidID;
     }
 
     @Override
@@ -89,8 +104,19 @@ public class ContainerDistillery extends Container {
             this.distillery.currentItemBurnTime = data;
         }
         if(id == 3){
-            if(this.distillery.tank.getFluid() != null)
-                this.distillery.tank.getFluid().amount = data;
+            this.distillery.amount = data;
+        }
+        if(id == 4) {
+            this.distillery.maxBurnTime = data;
+        }
+        if(id == 5) {
+            this.distillery.usedBurnTime = data;
+        }
+        if(id == 6) {
+            this.distillery.capacity = data;
+        }
+        if(id == 7) {
+            this.distillery.fluidID = data;
         }
     }
 
