@@ -1,34 +1,38 @@
 package de.canitzp.traincraft.proxy;
 
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.client.registry.RenderingRegistry;
+import de.canitzp.traincraft.blocks.rails.RenderTrackStraight;
+import de.canitzp.traincraft.blocks.rails.RenderCurvedTrack;
+import de.canitzp.traincraft.blocks.rails.TrackTileEntity;
+import de.canitzp.traincraft.entity.EntityTrain;
+import de.canitzp.traincraft.entity.Renderer;
 
 /**
  * @author canitzp
  */
 public class ClientProxy extends CommonProxy {
 
+    public static int shortStraight, mediumCurve;
+
     @Override
-    public void registerRenderers(){
-        //registerBlock(BlockRegistry.oilSand, "oilSand");
-        //registerBlock(BlockRegistry.distillery, "distillery");
-
-        //registerItem(ItemRegistry.fuelCanister, "fuelCanister");
-        //registerItem(ItemRegistry.fuelCanisterEmpty, "fuelCanisterEmpty");
-        //registerItem(ItemRegistry.plastic, "plastic");
-
-
-        //OBJLoader.instance.addDomain(Traincraft.MODID);
-        //ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRail.class, new RailRender());
+    public void registerRenderIds(){
+        shortStraight = RenderingRegistry.getNextAvailableRenderId();
+        mediumCurve = RenderingRegistry.getNextAvailableRenderId();
     }
 
-    private void registerBlock(Block block, String blockName){
-        //Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Item.getItemFromBlock(block), 0, new ModelResourceLocation(Traincraft.MODID + ":" + blockName, "inventory"));
-    }
-    private void registerItem(Item item, String blockName){
-        //Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(item, 0, new ModelResourceLocation(Traincraft.MODID + ":" + blockName, "inventory"));
-    }
+    @Override
+    public void registerRenderer(){
+        for(TrackTileEntity trackTileEntity : TrackTileEntity.values()){
+            if(trackTileEntity.tracks.curve.name.equals("straight")){
+                ClientRegistry.bindTileEntitySpecialRenderer(trackTileEntity.tileEntityClass, new RenderTrackStraight(trackTileEntity.tracks.getModel(), trackTileEntity.tracks.getTexture()));
+            } else if(trackTileEntity.tracks.curve.name.equals("curve")){
+                ClientRegistry.bindTileEntitySpecialRenderer(trackTileEntity.tileEntityClass, new RenderCurvedTrack(trackTileEntity.tracks.getModel(), trackTileEntity.tracks.getTexture()));
+            }
 
+        }
+        RenderingRegistry.registerEntityRenderingHandler(EntityTrain.class, new Renderer());
+    }
 
 
 }

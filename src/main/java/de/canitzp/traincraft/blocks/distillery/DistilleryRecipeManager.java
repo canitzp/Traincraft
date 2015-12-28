@@ -2,8 +2,8 @@ package de.canitzp.traincraft.blocks.distillery;
 
 import com.google.common.collect.Maps;
 import com.sun.istack.internal.Nullable;
-import de.canitzp.traincraft.BlockRegistry;
-import de.canitzp.traincraft.ItemRegistry;
+import de.canitzp.traincraft.blocks.BlockRegistry;
+import de.canitzp.traincraft.items.ItemRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;

@@ -1,7 +1,7 @@
 package de.canitzp.traincraft.gen;
 
 import cpw.mods.fml.common.IWorldGenerator;
-import de.canitzp.traincraft.BlockRegistry;
+import de.canitzp.traincraft.blocks.BlockRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;

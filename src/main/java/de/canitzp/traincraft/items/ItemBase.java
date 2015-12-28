@@ -2,7 +2,11 @@ package de.canitzp.traincraft.items;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import de.canitzp.traincraft.Traincraft;
+import de.canitzp.traincraft.entity.EntityTrain;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 /**
  * @author canitzp

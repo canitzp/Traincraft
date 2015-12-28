@@ -1,7 +1,7 @@
-package de.canitzp.traincraft;
+package de.canitzp.traincraft.blocks;
 
-import de.canitzp.traincraft.blocks.BlockOilSand;
 import de.canitzp.traincraft.blocks.distillery.BlockDistillery;
+import de.canitzp.traincraft.blocks.rails.TrackBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 
@@ -13,7 +13,7 @@ public class BlockRegistry {
     public static Block oilSand, distillery;
 
     public static void preInit(){
-        //Tracks.preInitBlocks();
+        TrackBlock.preInitBlocks();
         oilSand = new BlockOilSand(Material.sand, "oilSand");
         distillery = new BlockDistillery();
     }
